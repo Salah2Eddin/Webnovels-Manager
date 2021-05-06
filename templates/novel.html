@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+<!---->
+{% block title %} {{ novel.name }} {% endblock %}
+<!---->
+{% block header %} {{super()}}
+<div data-novel-name="{{novel.name}}" id='novel_data'></div>
+<div id='desc' class='desc_container'>
+    <div class='cover'>
+        <img src="{{novel.data.cover_link}}" class='cover'>
+    </div>
+    <div>
+        <h3 class='title'>{{novel.name}}</h3>
+        <p class='desc'> {{novel.data.description}}</p>
+    </div>
+</div>
+{% endblock %}
+<!---->
+{% block content %}
+<!---->
+{% for chapter in novel.chapters %} {% include "chapter.html" %} {% endfor %}
+<!---->
+{% endblock %}

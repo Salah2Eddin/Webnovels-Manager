@@ -1,0 +1,39 @@
+html {
+    overflow-x: hidden;
+    font-family: Arial, serif;
+}
+
+body {
+    background-color: #37393f;
+}
+
+.page {
+    font-weight: 400;
+    font-size: 18px;
+    background-color: #262626;
+    color: #bbbbbb;
+    margin: 0 5vw;
+}
+
+.chapter {
+    margin: 2vh 2vw;
+    width: 90%;
+}
+
+.chapter_title {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.chapter_paragraph {
+    text-align: left;
+}
+
+.desc_container {
+    margin: 10vh 2vw;
+    text-align: center;
+}
+
+.cover {
+    margin-top: 2vh;
+}

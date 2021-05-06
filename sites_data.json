@@ -1,0 +1,27 @@
+{
+    "www.wuxiaworld.com": {
+        "chapter_data_selector": "li.chapter-item a",
+        "chapter_selector": "#chapter-content p",
+        "reverse": "0",
+        "cover_selector": ".media-object.img-thumbnail",
+        "desc_selector": "div.novel-bottom div div.fr-view",
+        "cloudflare": "1"
+    },
+    "www.boxnovel.com": {
+        "chapter_data_selector": "li.wp-manga-chapter a",
+        "chapter_selector": "div.reading-content div.text-left p",
+        "reverse": "1",
+        "cover_selector": "div.summary_image img.img-responsive",
+        "desc_selector": "div.description-summary",
+        "cloudflare": "0"
+
+    },
+    "www.wuxiaworld.co": {
+        "chapter_data_selector": "div.chapter-wrapper ul a.chapter-item",
+        "chapter_selector": "#chapter-entity",
+        "reverse": "0",
+        "cover_selector": "div.book-container div.book-wrapper div.book-img img",
+        "desc_selector": "div.about-wrapper div div p",
+        "cloudflare": "0"
+    }
+}
