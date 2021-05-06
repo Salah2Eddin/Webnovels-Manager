@@ -3,7 +3,6 @@ from helper_functions import add_to_novels_list, load_novels_list
 from helper_functions import load_site_data
 from helper_functions import clean_up_title, clean_filename, clean_text
 from helper_functions import realtive_to_absloute, is_absloute_url
-import requests
 import cfscrape
 import jinja2
 from bs4 import BeautifulSoup
@@ -37,7 +36,7 @@ class Novel():
         self.chapters = []
 
         if self.name not in load_novels_list().keys():
-            add_to_novels_list(self.name)
+            add_to_novels_list(self.name, self.link)
 
     def __repr__(self):
         return self.name
@@ -152,7 +151,7 @@ class Novel():
             chapter = Chapter(self.name, chapter_title,
                               self.chapters_data[chapter_title], self.cf)
             # fetch chapter content
-            chapter.content = chapter.get_content(text_selector)
+            chapter.content = chapter.get_content(text_selector, self.scraper)
             # add to chapters list
             chapters.append(chapter)
             print(n)
@@ -296,7 +295,7 @@ class Chapter():
     def __repr__(self):
         return self.novel + "-" + self.title
 
-    def get_content(self, css_selector):
+    def get_content(self, css_selector, scraper):
         """
             gets chapter content
             params:
@@ -306,7 +305,7 @@ class Chapter():
         """
         # get chapter page html source
         if self.cf:
-            html = load_cfpage(self.link, self.scraper)
+            html = load_cfpage(self.link, scraper)
         else:
             html = load_page(self.link)
 
