@@ -1,0 +1,9 @@
+
+.vscode/
+__pycache__/
+Novels/
+webnovels_reader/
+TODO.txt
+tests.py
+global_variabls.py
+novels_list.json
