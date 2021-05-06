@@ -60,7 +60,7 @@ def load_site_data(sd):
         site_data: dict
     """
     # try sending api request for site data
-    request_url = f"http://127.0.0.1:5000/sitesdata/{sd}"
+    request_url = f"https://novels-reader-api.herokuapp.com/sitesdata/{sd}"
     request = requests.get(request_url)
     return request.text
 
