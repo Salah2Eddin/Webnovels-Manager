@@ -62,7 +62,7 @@ def load_site_data(sd):
     # try sending api request for site data
     request_url = f"https://novels-reader-api.herokuapp.com/sitesdata/{sd}"
     request = requests.get(request_url)
-    return request.text
+    return json.loads(request.text)
 
 
 def add_to_novels_list(name, link):

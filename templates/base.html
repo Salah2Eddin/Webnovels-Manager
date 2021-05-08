@@ -5,11 +5,19 @@
     {% block head %}
     <title>{% block title %} {% endblock %}</title>
     <link rel='stylesheet' href="assets/style.css">
-    <script src='assets/script.js'></script>
+    <script src='assets/scripts/jquery.js'></script>
+    <script src='assets/scripts/script.js'></script>
     {% endblock %}
 </head>
 
-<body>{% block body %}
+<body class=''>
+    <label class='switch hidden' id='theme-switch-parent'>
+        <input type="checkbox" id='theme-checkbox'>
+        <span class="slider">
+            <p class='theme-icon center' id='theme-switcher'>
+            </p>
+        </span>
+    </label>{% block body %}
     <div id='page' class='page'>
         <div id='header'>
             {% block header %} {% endblock %}

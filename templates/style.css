@@ -1,18 +1,26 @@
-html {
-    overflow-x: hidden;
-    font-family: Arial, serif;
+@font-face {
+    font-family: 'theme-icons';
+    src: url('fonts/theme-icons.woff') format('woff'), url('fonts/theme-icons.ttf') format('truetype');
 }
 
-body {
-    background-color: #37393f;
+html {
+    font-family: Arial, serif;
+    background-color: #b1a89f;
+}
+
+html.dark-mode {
+    background-color: #262626;
 }
 
 .page {
     font-weight: 400;
     font-size: 18px;
-    background-color: #262626;
-    color: #bbbbbb;
+    color: #0a0a0a;
     margin: 0 5vw;
+}
+
+.dark-mode .page {
+    color: #bbbbbb;
 }
 
 .chapter {
@@ -36,4 +44,74 @@ body {
 
 .cover {
     margin-top: 2vh;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+
+/* switch */
+
+.switch {
+    position: fixed;
+    display: block;
+    width: 34px;
+    height: 34px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -webkit-transition: .4s;
+    transition: .4s;
+    border-radius: 50%;
+    user-select: none;
+    background-color: #262626;
+    border: 1px solid #e0e0e0;
+}
+
+input:checked+.slider {
+    background-color: #b1a89f;
+    border: 1px solid #262626;
+}
+
+.slider .theme-icon::before {
+    font-family: theme-icons;
+    position: absolute;
+    -webkit-transition: .4s;
+    transition: .4s;
+    content: "\e900";
+    color: #bbbbbb;
+    font-size: 50px;
+}
+
+input:checked+.slider .theme-icon::before {
+    content: "\e901";
+    color: #0a0a0a;
+}
+
+
+/* weasyprint */
+
+@page {
+    size: auto;
+    text-align: center;
+    background-color: #b1a89f;
 }

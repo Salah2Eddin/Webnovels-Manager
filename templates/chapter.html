@@ -1,4 +1,4 @@
-<div id='{{chapter.title}}' class='chapter' data-chapter-title={{chapter.title}}>
+<div id='{{chapter.title}}' class='chapter' data-chapter-title={{novel.chapters.index(chapter)+1}}>
     <h4 class='chapter_title'>{{chapter.title}}</h4>
     {% with paragraphs = chapter.content.split("\n") %} {% for paragraph in paragraphs %}
     <p class='chapter_paragraph'>{{paragraph}}</p>

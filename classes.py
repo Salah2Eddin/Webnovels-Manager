@@ -3,13 +3,16 @@ from helper_functions import add_to_novels_list, load_novels_list
 from helper_functions import load_site_data
 from helper_functions import clean_up_title, clean_filename, clean_text
 from helper_functions import realtive_to_absloute, is_absloute_url
+
 import cfscrape
 import jinja2
 from bs4 import BeautifulSoup
 
 import os
 import json
+from shutil import copy, copytree, rmtree
 
+from weasyprint import HTML, CSS
 
 class Novel():
     """
@@ -246,7 +249,7 @@ class Novel():
         self.save_chapters_data()
         self.save_chapters()
 
-    # html methods
+    # HTML methods
 
     def write_html(self):
         """ Create HTML file for novel """
@@ -259,27 +262,55 @@ class Novel():
         TEMPLATE_FILE = "novel.html"
         template = template_env.get_template(TEMPLATE_FILE)
         output_text = template.render(novel=self)
+
+        return output_text
+
+    def export_as_html(self):
+        current_path = os.getcwd()
+        templates_folder = os.path.join(current_path, 'templates')
         # save output_text to html file
+        
+        html_txt = self.write_html()
         file_path = os.path.join(self.path, self.name)+'.html'
         with open(file_path, 'w') as f:
-            f.write(output_text)
+            f.write(html_txt)
             f.close()
+        
         # create assets folder with javascript and css files
         if not os.path.exists(os.path.join(self.path, 'assets')):
             os.mkdir(os.path.join(self.path, 'assets'))
 
-        css_path = os.path.join(self.path, 'assets', 'style.css')
-        with open(css_path, 'w') as f:
-            css = open(os.path.join(templates_folder, 'style.css')).read()
-            f.write(css)
+        css_path = os.path.join(templates_folder, 'style.css')
+        css_dst = os.path.join(self.path, 'assets', 'style.css')
+        os.remove(css_dst)
+        copy(css_path, css_dst)
+
+        js_path = os.path.join(templates_folder, 'scripts')
+        js_dst = os.path.join(self.path, 'assets', 'scripts')
+        rmtree(js_dst)
+        copytree(js_path, js_dst)
+
+        fonts_path = os.path.join(templates_folder, 'fonts')
+        fonts_dst = os.path.join(self.path, 'assets', 'fonts')
+        rmtree(fonts_dst)
+        copytree(fonts_path, fonts_dst)
+
+    def export_as_pdf(self):
+        templates_folder = os.path.join(os.getcwd(), 'templates')
+
+        # get html doc
+        html = self.write_html()
+        
+        # get css stylesheet
+        with open(os.path.join(templates_folder, 'style.css'), 'r') as f:
+            css = f.read()
             f.close()
 
-        js_path = os.path.join(self.path, 'assets', 'script.js')
-        with open(js_path, 'w') as f:
-            js = open(os.path.join(templates_folder, 'script.js')).read()
-            f.write(js)
-            f.close()
-
+        pdf_dst = os.path.join(self.path, self.name+'.pdf')
+        # delete pdf if exists
+        os.remove(pdf_dst)
+        # write pdf file
+        HTML(string=html).write_pdf(pdf_dst, stylesheets=[CSS(string=css)])
 
 class Chapter():
     def __init__(self, novel, title, link, cf=False, content=""):
