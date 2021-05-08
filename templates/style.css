@@ -6,6 +6,8 @@
 html {
     font-family: Arial, serif;
     background-color: #b1a89f;
+    -webkit-transition: .4s;
+    transition: .4s;
 }
 
 html.dark-mode {
@@ -108,7 +110,7 @@ input:checked+.slider .theme-icon::before {
 }
 
 
-/* weasyprint */
+/* weasyprint page */
 
 @page {
     size: auto;

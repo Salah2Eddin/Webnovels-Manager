@@ -14,6 +14,7 @@ from shutil import copy, copytree, rmtree
 
 from weasyprint import HTML, CSS
 
+
 class Novel():
     """
     Novel Class - Has all the data and methods to deal with novels\n
@@ -148,8 +149,12 @@ class Novel():
         text_selector = self.site_data["chapter_selector"]
         # create chapter object for each chapter
         chapters = []
+        chapters_titles = list(self.chapters_data.keys())
+        if self.site_data['reverse'] == "1":
+            chapters_titles = list(reversed(chapters_titles))
+
         n = 1
-        for chapter_title in list(self.chapters_data.keys())[0:num-1]:
+        for chapter_title in chapters_titles[0:num-1]:
             # create chapter object
             chapter = Chapter(self.name, chapter_title,
                               self.chapters_data[chapter_title], self.cf)
@@ -159,9 +164,41 @@ class Novel():
             chapters.append(chapter)
             print(n)
             n += 1
-        if self.site_data['reverse'] == "1":
-            chapters.reverse()
         return chapters
+
+    def update(self):
+        text_selector = self.site_data["chapter_selector"]
+        # update chapters data
+        self.data, self.chapters_data = self.get_novel_data()
+
+        new_chapters = []
+        existing_chapters_titles = []
+
+        # save existing chapters and get their titles
+        for chapter in self.chapters:
+            existing_chapters_titles.append(chapter.title)
+            new_chapters.append(chapter)
+
+        # reverse chapters sorting if needed
+        chapters_titles = list(self.chapters_data.keys())
+        if self.site_data['reverse'] == "1":
+            chapters_titles = list(reversed(chapters_titles))
+
+        # get new chapters
+        for chapter_title in chapters_titles:
+            # ignore existing chapters
+            if chapter_title in existing_chapters_titles:
+                continue
+            # create chapter object
+            chapter = Chapter(self.name, chapter_title,
+                              self.chapters_data[chapter_title], self.cf)
+            # fetch chapter content
+            chapter.content = chapter.get_content(text_selector, self.scraper)
+            # add to new chapters list
+            new_chapters.append(chapter)
+
+        # update novel chapters
+        self.chapters = new_chapters
 
     # loading methods
 
@@ -249,10 +286,14 @@ class Novel():
         self.save_chapters_data()
         self.save_chapters()
 
-    # HTML methods
+    # Exporting methods
 
     def write_html(self):
-        """ Create HTML file for novel """
+        """
+        Generates HTML from Template for Novel
+        return:
+            str HTML: Generated HTML
+        """
         current_path = os.getcwd()
         templates_folder = os.path.join(current_path, 'templates')
         # set jinja2 enviroment
@@ -266,51 +307,54 @@ class Novel():
         return output_text
 
     def export_as_html(self):
+        """ Exports Novel as HTML File """
         current_path = os.getcwd()
         templates_folder = os.path.join(current_path, 'templates')
         # save output_text to html file
-        
-        html_txt = self.write_html()
+
+        html = self.write_html()
         file_path = os.path.join(self.path, self.name)+'.html'
         with open(file_path, 'w') as f:
-            f.write(html_txt)
+            f.write(html)
             f.close()
-        
+
         # create assets folder with javascript and css files
         if not os.path.exists(os.path.join(self.path, 'assets')):
             os.mkdir(os.path.join(self.path, 'assets'))
 
         css_path = os.path.join(templates_folder, 'style.css')
         css_dst = os.path.join(self.path, 'assets', 'style.css')
-        os.remove(css_dst)
+        if os.path.isfile(css_dst):
+            os.remove(css_dst)
         copy(css_path, css_dst)
 
         js_path = os.path.join(templates_folder, 'scripts')
         js_dst = os.path.join(self.path, 'assets', 'scripts')
-        rmtree(js_dst)
+        if os.path.isdir(js_dst):
+            rmtree(js_dst)
         copytree(js_path, js_dst)
 
         fonts_path = os.path.join(templates_folder, 'fonts')
         fonts_dst = os.path.join(self.path, 'assets', 'fonts')
-        rmtree(fonts_dst)
+        if os.path.isdir(fonts_dst):
+            rmtree(fonts_dst)
         copytree(fonts_path, fonts_dst)
 
     def export_as_pdf(self):
+        """ Exports Novel as PDF File """
         templates_folder = os.path.join(os.getcwd(), 'templates')
 
-        # get html doc
+        # get html doc (to turn it into pdf)
         html = self.write_html()
-        
-        # get css stylesheet
-        with open(os.path.join(templates_folder, 'style.css'), 'r') as f:
-            css = f.read()
-            f.close()
+        css_path = os.path.join(templates_folder, 'style.css')
 
         pdf_dst = os.path.join(self.path, self.name+'.pdf')
         # delete pdf if exists
-        os.remove(pdf_dst)
+        if os.path.isfile(pdf_dst):
+            os.remove(pdf_dst)
         # write pdf file
-        HTML(string=html).write_pdf(pdf_dst, stylesheets=[CSS(string=css)])
+        HTML(string=html).write_pdf(pdf_dst, stylesheets=[CSS(css_path)])
+
 
 class Chapter():
     def __init__(self, novel, title, link, cf=False, content=""):
