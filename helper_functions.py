@@ -3,6 +3,7 @@ import re
 import requests
 import os
 import json
+import time
 
 
 def load_page(link):
@@ -12,8 +13,14 @@ def load_page(link):
         str link: page's link\n
     return:
         page html: string"""
-    page = requests.get(link)
-    return page.text
+    no_tries = 0
+    while no_tries < 3:
+        try:
+            page = requests.get(link)
+            return page.text
+        except Exception:
+            no_tries += 1
+            time.sleep(3)
 
 
 def load_cfpage(link, cfscraper):
@@ -26,8 +33,14 @@ def load_cfpage(link, cfscraper):
     return:
         page html: str
     """
-    page = cfscraper.get(link)
-    return str(page.content)
+    no_tries = 0
+    while no_tries < 3:
+        try:
+            page = cfscraper.get(link)
+            return str(page.content)
+        except Exception:
+            no_tries += 1
+            time.sleep(3)
 
 
 def load_novels_list():

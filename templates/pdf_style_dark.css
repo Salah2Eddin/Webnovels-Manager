@@ -1,0 +1,56 @@
+@font-face {
+    font-family: 'theme-icons';
+    src: url('fonts/theme-icons.woff') format('woff'), url('fonts/theme-icons.ttf') format('truetype');
+}
+
+html {
+    font-family: Arial, serif;
+    background-color: #262626;
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.novel {
+    font-weight: 400;
+    font-size: 18px;
+    color: #bbbbbb;
+    margin: 0 5vw;
+}
+
+.chapter {
+    margin: 2vh 2vw;
+    width: 90%;
+}
+
+.chapter_title {
+    margin: 0 auto;
+    text-align: center;
+}
+
+.chapter_paragraph {
+    text-align: left;
+}
+
+.desc_container {
+    margin: 10vh 2vw;
+    text-align: center;
+}
+
+.cover {
+    margin-top: 2vh;
+}
+
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* weasyprint page */
+
+@page {
+    size: auto;
+    text-align: center;
+    background-color: #262626;
+}

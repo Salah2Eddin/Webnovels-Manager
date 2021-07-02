@@ -1,0 +1,7 @@
+<div id='{{chapter.title}}' class='chapter'>
+    <h4 class='chapter_title'>{{chapter.title}}</h4>
+    {% with paragraphs = chapter.content.split("\n") %} {% for paragraph in paragraphs %}
+    <p class='chapter_paragraph'>{{paragraph}}</p>
+    {% endfor %} {% endwith %}
+    <p style='page-break-before: always;'></p>
+</div>

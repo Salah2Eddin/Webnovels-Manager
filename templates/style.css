@@ -14,14 +14,14 @@ html.dark-mode {
     background-color: #262626;
 }
 
-.page {
+.novel {
     font-weight: 400;
     font-size: 18px;
     color: #0a0a0a;
     margin: 0 5vw;
 }
 
-.dark-mode .page {
+.dark-mode .novel {
     color: #bbbbbb;
 }
 
@@ -107,13 +107,4 @@ input:checked+.slider {
 input:checked+.slider .theme-icon::before {
     content: "\e901";
     color: #0a0a0a;
-}
-
-
-/* weasyprint page */
-
-@page {
-    size: auto;
-    text-align: center;
-    background-color: #b1a89f;
 }
