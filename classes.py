@@ -1,8 +1,4 @@
-from helper_functions import load_cfpage, load_page, get_site_domain
-from helper_functions import add_to_novels_list, load_novels_list
-from helper_functions import load_site_data
-from helper_functions import clean_up_title, clean_filename, clean_text
-from helper_functions import realtive_to_absloute, is_absloute_url
+from helper_functions import *
 
 import novel_exceptions
 
@@ -12,9 +8,14 @@ from bs4 import BeautifulSoup
 
 import os
 import json
+import logging
+import logging.config
 from shutil import copy, copytree, rmtree
 
 from weasyprint import HTML, CSS
+
+logging.config.fileConfig(fname='log.conf')
+logger = logging.getLogger(__name__)
 
 
 class Novel():
@@ -25,12 +26,14 @@ class Novel():
         optional named params:
             str link: link to novel
             bool load: load novel from local folder or not
-            (ignored if link not provided)
+            (always True if link not provided)
     """
     def __init__(self, name, **kwrgs):
         # main variables
         self.name = name
-        self.path = os.path.join(os.getcwd(), 'Novels', self.name)
+        self.path = os.path.join(os.getcwd(), 'Novels',
+                                 clean_foldername(self.name))
+        self.exportsPath = os.path.join(self.path, 'Exports')
         self.initialized = False
 
         self.link = None
@@ -53,12 +56,20 @@ class Novel():
 
     def initialize(self, debug=False) -> None:
         """ initializes novel object """
-        # Create a folder for novel if it doesn't exist
+        # Create novel folder if it doesn't exist
+        logging.info("Initializing...")
+        logging.info("Creating Novel Folder")
+
         if not os.path.exists(self.path):
             os.mkdir(self.path)
 
+        # Create Exports folder if it doesn't exist
+        if not os.path.exists(self.exportsPath):
+            os.mkdir(self.exportsPath)
+
         if self.link is None or self.load:
             try:
+                logging.info("Fetching Novel Data")
                 self.data = self.load_novel_data()
                 self.link = self.data['link']
 
@@ -66,31 +77,36 @@ class Novel():
                 self.cf = self.data['cf']
 
                 self.initialized = True
+                logging.info("Loading Chapters Data")
                 self.chapters_data = self.load_chapters_data()
+                logging.info("Loading Chapters")
                 self.chapters = self.load_chapters()
             except FileNotFoundError as e:
                 if self.data is None:
-                    print(e)
+                    logging.critical(e)
                     raise novel_exceptions.NoNovelData
                 elif self.chapters_data is None:
-                    print(e)
+                    logging.critical(e)
                     raise novel_exceptions.NoChapterData
             except KeyError as e:
-                print(e)
+                logging.critical(e)
                 raise novel_exceptions.MissingNovelData
             except Exception as e:
-                print(e)
+                logging.critical(e)
 
+        logging.info("Fetching Novel Host Data")
         self.site_domain = get_site_domain(self.link)
         self.site_data = load_site_data(self.site_domain)
         self.cf = True if self.site_data['cloudflare'] == "1" else False
         self.scraper = cfscrape.create_scraper() if self.cf else None
 
-        if self.load is False:
-            self.data, self.chapters_data = self.get_novel_data()
-            self.chapters = self.get_chapters(5 if debug else 0)
-
         self.initialized = True
+
+        if self.load is False:
+            logging.info("Fetching Chapters Data")
+            self.data, self.chapters_data = self.get_novel_data()
+            logging.info("Fetching Chapters")
+            self.chapters = self.get_chapters(5 if debug else 0)
 
     # fetching methods
 
@@ -191,7 +207,7 @@ class Novel():
             list chapters: [class Chapter]
         """
         # make sure novel object initialized
-        assert(self.initialized is False)
+        assert(self.initialized is True)
 
         text_selector = self.site_data["chapter_selector"]
         # create chapter object for each chapter
@@ -206,11 +222,12 @@ class Novel():
             chapter = Chapter(self, chapter_title,
                               self.chapters_data[chapter_title], self.cf)
             # fetch chapter content
+            logging.info("Fetching Chapter: %s", chapter_title)
             chapter.content = chapter.get_content(text_selector, self.scraper)
+            logging.info("Saving Chapter: %s", chapter_title)
             chapter.save()
             # add to chapters list
             chapters.append(chapter)
-            print(n)
             n += 1
         return chapters
 
@@ -225,6 +242,7 @@ class Novel():
         new_chapters = []
         existing_chapters_titles = []
 
+        logging.info("Checking existing chapters")
         # save existing chapters and get their titles
         for chapter in self.chapters:
             existing_chapters_titles.append(chapter.title)
@@ -236,16 +254,18 @@ class Novel():
             chapters_titles = list(reversed(chapters_titles))
 
         # get new chapters
+        logging.info("Getting New Chapters")
         for chapter_title in chapters_titles:
             # ignore existing chapters
             if chapter_title in existing_chapters_titles:
                 continue
             # create chapter object
-            print("New chapter: {}".format(chapter_title))
+            logging.info("New chapter: %s", chapter_title)
             chapter = Chapter(self, chapter_title,
                               self.chapters_data[chapter_title], self.cf)
             # fetch chapter content
             chapter.content = chapter.get_content(text_selector, self.scraper)
+            logging.info("Saving chapter: %s", chapter_title)
             chapter.save()
             # add to new chapters list
             new_chapters.append(chapter)
@@ -316,6 +336,8 @@ class Novel():
         """ saves novel data as json file in novel folder """
         # make sure novel object initialized
         assert(self.initialized is True)
+
+        logging.info("Savign Novel Data")
         file_path = os.path.join(self.path, "novel_data.json")
         with open(file_path, "w") as f:
             f.write(json.dumps(self.data))
@@ -325,6 +347,8 @@ class Novel():
         """ saves chapters data {name:link} as json file in novel folder """
         # make sure novel object initialized
         assert(self.initialized is True)
+
+        logging.info("Saving Chapters Data")
         file_path = os.path.join(self.path, "chapters_data.json")
         with open(file_path, "w") as f:
             f.write(json.dumps(self.chapters_data))
@@ -334,6 +358,8 @@ class Novel():
         """ saves each chapter and saves a json with their paths"""
         # make sure novel object initialized
         assert(self.initialized is True)
+
+        logging.info("Saving Chapters")
         chapter_paths = {}
         # store path and save chapter
         for chapter in self.chapters:
@@ -341,6 +367,7 @@ class Novel():
             chapter.save()
 
         # store paths as a json
+        logging.info("Saving Chapters Paths")
         with open(os.path.join(self.path, 'chapters_path.json'), 'w') as f:
             f.write(json.dumps(chapter_paths))
             f.close()
@@ -366,6 +393,8 @@ class Novel():
         # make sure novel object initialized
         assert(self.initialized is True)
 
+        logging.info("Writing HTML File")
+
         current_path = os.getcwd()
         templates_folder = os.path.join(current_path, 'templates')
         # set jinja2 enviroment
@@ -383,38 +412,41 @@ class Novel():
         # make sure novel object initialized
         assert(self.initialized is True)
 
-        # Creates novel folder if it doesn't exist
-        if not os.path.exists(self.path):
-            os.mkdir(self.path)
+        logging.info("Exporting as HTML")
+
+        # Creates Exports folder if it doesn't exist
+        if not os.path.exists(os.path.join(self.path, 'Exports')):
+            os.mkdir(os.path.join(self.path, 'Exports'))
 
         current_path = os.getcwd()
         templates_folder = os.path.join(current_path, 'templates')
 
         # save output_text to html file
         html = self.write_html()
-        file_path = os.path.join(self.path, self.name)+'.html'
+        file_path = os.path.join(self.path, 'Exports', self.name)+'.html'
         with open(file_path, 'w') as f:
             f.write(html)
             f.close()
 
         # create assets folder with javascript and css files
-        if not os.path.exists(os.path.join(self.path, 'assets')):
-            os.mkdir(os.path.join(self.path, 'assets'))
+        logging.info("Creating Assets")
+        if not os.path.exists(os.path.join(self.path, 'Exports', 'assets')):
+            os.mkdir(os.path.join(self.path, 'Exports', 'assets'))
 
         css_path = os.path.join(templates_folder, 'style.css')
-        css_dst = os.path.join(self.path, 'assets', 'style.css')
+        css_dst = os.path.join(self.path, 'Exports', 'assets', 'style.css')
         if os.path.isfile(css_dst):
             os.remove(css_dst)
         copy(css_path, css_dst)
 
         js_path = os.path.join(templates_folder, 'scripts')
-        js_dst = os.path.join(self.path, 'assets', 'scripts')
+        js_dst = os.path.join(self.path, 'Exports', 'assets', 'scripts')
         if os.path.isdir(js_dst):
             rmtree(js_dst)
         copytree(js_path, js_dst)
 
         fonts_path = os.path.join(templates_folder, 'fonts')
-        fonts_dst = os.path.join(self.path, 'assets', 'fonts')
+        fonts_dst = os.path.join(self.path, 'Exports', 'assets', 'fonts')
         if os.path.isdir(fonts_dst):
             rmtree(fonts_dst)
         copytree(fonts_path, fonts_dst)
@@ -428,6 +460,8 @@ class Novel():
         """
         # make sure novel object initialized
         assert(self.initialized is True)
+
+        logging.info("Creating PDF")
 
         current_path = os.getcwd()
         templates_folder = os.path.join(current_path, 'templates')
@@ -448,6 +482,8 @@ class Novel():
         # make sure novel object initialized
         assert(self.initialized is True)
 
+        logging.info("Exporting as PDF")
+
         # Creates novel folder if it doesn't exist
         if not os.path.exists(self.path):
             os.mkdir(self.path)
@@ -456,9 +492,10 @@ class Novel():
         css_file_suffix = '_dark' if dark_mode else '_light'
         css_filename = 'pdf_style{}.css'.format((css_file_suffix))
         css_path = os.path.join(templates_folder, css_filename)
-        pdf_dst = os.path.join(self.path, self.name+'.pdf')
+        pdf_dst = os.path.join(self.path, 'Exports', self.name+'.pdf')
         if dark_mode:
-            pdf_dst = os.path.join(self.path, self.name+' Dark'+'.pdf')
+            pdf_dst = os.path.join(self.path, 'Exports',
+                                   self.name+' Dark'+'.pdf')
 
         html = self.write_pdf_as_html(dark_mode)
         # delete older pdf if exists
