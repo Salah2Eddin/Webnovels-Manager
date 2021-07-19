@@ -47,7 +47,7 @@ def load_novels_list():
     """
     reads novels_list.json and returns dict with all novels
     return:
-        novels_list: dict
+        novels_list: dict{name: str link}
     """
     file = 'novels_list.json'
     # check if json file exists, if not adds it
@@ -85,6 +85,9 @@ def add_to_novels_list(name, link):
         str name: novel's name
         str link: novel's link
     """
+    # Remove copying mistakes
+    name = clean_up_title(name)
+
     novels_list = load_novels_list()
     novels_list[name] = link
     with open('novels_list.json', 'w') as f:
@@ -105,7 +108,7 @@ def get_site_domain(url):
 
 def clean_up_title(title):
     """
-    cleans up title
+    cleans up title from extra spaces
     params:
         str title
     return:
@@ -132,19 +135,12 @@ def clean_text(text):
     # remove spaces at start and end
     clean_text = clean_text.strip()
 
-    # start new line after each '.'
-    clean_text = clean_text.replace('. ', '.\n')
     # add space after each double quote if there isn't one
     # and removes edge spaces inside them
     double_quotes_no_space = re.findall(r'".*"\b', clean_text)
     for i in double_quotes_no_space:
         double_quotes_text = i[1:-2].strip()
         clean_text = clean_text.replace(i, '"{}" '.format(double_quotes_text))
-    # some unicodes are not decoded into plain text
-    # unicodes = re.findall(r'\\u....', clean_text)
-    # for i in unicodes:
-    #    char = i.encode('utf-8').decode('unicode-escape')
-    #    clean_text = clean_text.replace(i, char+" ")
     return clean_text
 
 
@@ -162,9 +158,29 @@ def clean_filename(name):
     file_name = file_name.replace('?', '')
     file_name = file_name.replace('\"', '')
     file_name = file_name.replace('\\', '')
+    file_name = file_name.replace(':', '')
     file_name = file_name.strip()
     file_name += '.txt'
     return file_name
+
+
+def clean_foldername(name):
+    """
+    cleans title to make it suitable as a folder name
+    params:
+        str name: title
+    return:
+        folder_name: str
+    """
+    folder_name = name.replace(':', '')
+    folder_name = folder_name.replace('–', '')
+    folder_name = folder_name.replace('-', '')
+    folder_name = folder_name.replace('?', '')
+    folder_name = folder_name.replace('\"', '')
+    folder_name = folder_name.replace('\\', '')
+    folder_name = folder_name.replace(':', '')
+    folder_name = folder_name.strip()
+    return folder_name
 
 
 def is_absloute_url(url):
@@ -197,3 +213,7 @@ def realtive_to_absloute(url, site_domain=""):
         return "https://"+url
     elif not parser.netloc and parser.path:
         return "https://"+site_domain+url
+
+
+def get_novel_path(novelName):
+    return os.path.join(os.getcwd(), 'Novels', clean_foldername(novelName))
