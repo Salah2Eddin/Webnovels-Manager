@@ -1,18 +1,20 @@
-from os import mkdir, getcwd, path
-if not path.exists(path.join(getcwd(), 'Logs')):
-    mkdir(path.join(getcwd(), 'Logs'))
-
-
 def main():
     from PyQt5.QtWidgets import QApplication
     from gui import App
+    from os import mkdir, getcwd, path
 
     import logging
     import logging.config
 
+    if not path.exists(path.join(getcwd(), 'logs')):
+        mkdir(path.join(getcwd(), 'logs'))
+
+    if not path.exists(path.join(getcwd(), 'Novels')):
+        mkdir(path.join(getcwd(), 'Novels'))
+
     logging.basicConfig()
-    rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.INFO)
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
 
     root = QApplication([])
     app = App()
