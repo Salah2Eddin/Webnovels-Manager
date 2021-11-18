@@ -55,7 +55,7 @@ def load_novels_list():
         with open(file, 'w') as f:
             f.write('{}')
             f.close
-        return '{}'
+        return {}
     # reads json and returns novels list
     else:
         with open(file, 'r') as f:
